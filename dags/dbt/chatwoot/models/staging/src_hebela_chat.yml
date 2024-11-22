@@ -1,0 +1,64 @@
+version: 2
+
+sources:
+  - name: hc_gold
+    description: Data from gold layer in Minio, brought in by an ETL process from DBT.
+    database: iceberg
+    schema: hebela_chat
+    tables:
+      - name: cube_campaign_transaction
+        config:
+          tags: [ gold_layer ]
+          columns:
+            - name: campaign_id
+              tests: [ not_null ]
+
+  - name: hc_silver
+    description: Data from silver layer in Minio, brought in by an ETL process.
+    database: iceberg
+    schema: hebela_chat
+    tables:
+      - name: dim_account
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: id
+              tests: [ not_null ]
+            - 'name': 'name'
+              tests: [ not_null ]
+
+      - name: dim_campaign
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: id
+              tests: [ not_null ]
+            - name: title
+              tests: [ not_null ]
+
+      - name: dim_inbox
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: id
+              tests: [ not_null ]
+            - 'name': 'name'
+              tests: [ not_null ]
+
+      - name: fct_account_agg
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: account_id
+              tests: [ not_null ]
+
+      - name: fct_campaign_agg
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: campaign_id
+              tests: [ not_null ]
+            - name: inbox_id
+              tests: [ not_null ]
+            - name: account_id
+              tests: [ not_null ]

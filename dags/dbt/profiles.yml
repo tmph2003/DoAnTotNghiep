@@ -1,0 +1,106 @@
+hebela_chat:
+  target: lakehouse 
+  outputs:
+    gold:
+      type: trino
+      method: none
+      user: trino
+      password:
+      catalog: iceberg
+      schema: hebela_chat
+      host: trino-master
+      port: 8080
+      http_scheme: http
+      threads: 2
+
+    lakehouse:
+      type: trino
+      method: none
+      user: trino
+      password:
+      catalog: iceberg
+      schema: hebela_chat
+      host: trino-master
+      port: 8080
+      http_scheme: http
+      threads: 2
+
+resource_manager:
+  target: rs
+  outputs:
+    saleholding2:
+      type: trino
+      method: none
+      user: trino
+      password:
+      catalog: saleholding
+      schema: public
+      host: trino-master
+      port: 8080
+      http_scheme: http
+      threads: 2
+      apply_grants: no
+
+    rs:
+      type: trino
+      method: none
+      user: trino
+      password:
+      catalog: iceberg
+      schema: rs
+      host: trino-master
+      port: 8080
+      http_scheme: http
+      threads: 2
+
+sale_holding:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      method: ldap
+      user: xxx
+      password: xxx
+      database: clickhouse
+      host: localhost
+      port: 443
+      schema: saleholding
+      threads: 2
+    gold:
+      type: trino
+      method: none
+      user: trino
+      password: '' 
+      catalog: clickhouse
+      schema: saleholding
+      host: localhost 
+      port: 8080
+      http_scheme: http
+      threads: 2
+
+chatwoot:
+  outputs:
+
+    dev:
+      type: trino
+      method: none  # optional, one of {none | ldap | kerberos}
+      user: [dev_user]
+      password: [password]  # required if method is ldap or kerberos
+      database: [database name]
+      host: [hostname]
+      port: [port number]
+      schema: [dev_schema]
+      threads: [1 or more]
+
+    prod:
+      type: trino
+      method: none  # optional, one of {none | ldap | kerberos}
+      user: [prod_user]
+      password: [prod_password]  # required if method is ldap or kerberos
+      database: [database name]
+      host: [hostname]
+      port: [port number]
+      schema: [prod_schema]
+      threads: [1 or more]
+
+  target: dev

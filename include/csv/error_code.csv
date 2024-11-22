@@ -1,0 +1,50 @@
+﻿code,error_type,description_vi
+0,Lỗi ủy quyền,Chúng tôi không thể xác thực người dùng ứng dụng.
+3,Lỗi ủy quyền,Vấn đề về tính năng hoặc quyền.
+10,Lỗi ủy quyền,Quyền không được cấp hoặc đã bị gỡ.
+190,Lỗi ủy quyền,Mã truy cập của bạn đã hết hạn.
+4,Lỗi giới hạn tốc độ,Quá nhiều lệnh gọi API
+80007,Lỗi giới hạn tốc độ,Vấn đề về giới hạn tốc độ
+130429,Lỗi giới hạn tốc độ,Đã đạt giới hạn tốc độ
+131048,Lỗi giới hạn tốc độ,Đã đạt giới hạn tỷ lệ spam
+131056,Lỗi giới hạn tốc độ,"Đã đạt giới hạn tốc độ ghép nối (Tài khoản kinh doanh, Tài khoản khách hàng)"
+133016,Lỗi giới hạn tốc độ,Đã vượt quá giới hạn tốc độ đăng ký/hủy đăng ký tài khoản
+368,Lỗi về tính toàn vẹn,Tạm thời bị chặn do vi phạm chính sách
+131031,Lỗi về tính toàn vẹn,Tài khoản đã bị khóa
+1,Lỗi khác,API không xác định
+2,Lỗi khác,Dịch vụ API
+33,Lỗi khác,Giá trị thông số không hợp lệ
+100,Lỗi khác,Thông số không hợp lệ
+130472,Lỗi khác,Số của người dùng đang được thử nghiệm
+131000,Lỗi khác,Đã xảy ra lỗi
+131005,Lỗi khác,Truy cập bị từ chối
+131008,Lỗi khác,Thiếu thông số bắt buộc
+131009,Lỗi khác,Giá trị thông số không hợp lệ
+131016,Lỗi khác,Dịch vụ không khả dụng
+131021,Lỗi khác,Người nhận không được là người gửi
+131026,Lỗi khác,Không gửi được tin nhắn
+131042,Lỗi khác,Vấn đề thanh toán liên quan đến tình trạng đủ điều kiện kinh doanh
+131045,Lỗi khác,Chứng chỉ không chính xác
+131047,Lỗi khác,Tin nhắn tái thu hút
+131051,Lỗi khác,Loại tin nhắn không được hỗ trợ
+131052,Lỗi khác,Lỗi tải xuống file phương tiện
+131053,Lỗi khác,Lỗi tải file phương tiện lên
+131057,Lỗi khác,Tài khoản đang ở chế độ bảo trì
+132000,Lỗi khác,Số lượng thông số trong mẫu không khớp
+132001,Lỗi khác,Mẫu không tồn tại
+132005,Lỗi khác,Văn bản tái lập của mẫu quá dài
+132007,Lỗi khác,Đã vi phạm chính sách ký tự định dạng trong mẫu
+132012,Lỗi khác,Định dạng thông số trong mẫu không khớp
+132015,Lỗi khác,Mẫu bị tạm dừng
+132016,Lỗi khác,Mẫu bị vô hiệu hóa
+132068,Lỗi khác,Quy trình bị chặn
+132069,Lỗi khác,Quy trình bị giới hạn tốc độ
+133000,Lỗi khác,Hủy đăng ký chưa hoàn tất
+133004,Lỗi khác,Máy chủ tạm thời không khả dụng
+133005,Lỗi khác,Mã PIN xác minh 2 bước không khớp
+133006,Lỗi khác,Cần xác minh lại số điện thoại
+133008,Lỗi khác,Đoán mã PIN xác minh 2 bước quá nhiều lần
+133009,Lỗi khác,Tốc độ đoán mã PIN xác minh 2 bước quá nhanh
+133010,Lỗi khác,Số điện thoại chưa được đăng ký
+133015,Lỗi khác,Vui lòng chờ vài phút rồi mới đăng ký số điện thoại này
+135000,Lỗi khác,Lỗi người dùng chung
