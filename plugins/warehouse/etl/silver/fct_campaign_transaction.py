@@ -30,6 +30,7 @@ def build_fct_campaign_transaction(logger, trino: TrinoHelper, partition_value=N
                                         'audience_conditions_2', 'ws_template_id', 'campaign_status', 'is_done', 'scheduled_at'])
 
     for idx, row in campaign_df.iterrows():
+        logger.info(f"============{idx}/{campaign_df.shape[0]}============")
         results = trino.execute(f"""
         SELECT
             l.id AS label_id,

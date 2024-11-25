@@ -49,13 +49,8 @@ class TrinoHelper:
         start_time = time.time()
         try:
             with self.client.managed_cursor() as cursor:
-                if isinstance(query, list):
-                    for item in query:
-                        cursor.execute(item)
-                        results = cursor.fetchall()
-                else:
-                    cursor.execute(query)
-                    results = cursor.fetchall()
+                cursor.executemany(query, rows)
+                results = cursor.fetchall()
 
                 end_time = time.time()
                 execution_time = end_time - start_time

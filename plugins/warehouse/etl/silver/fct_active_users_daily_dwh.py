@@ -2,10 +2,10 @@ from plugins.config import config
 from plugins.warehouse.common.trino_helper import TrinoHelper
 
 
-def build_fct_active_users_daily(logger, trino: TrinoHelper):
+def build_fct_active_users_daily_dwh(logger, trino: TrinoHelper):
     logger.info('Building fct_active_users_daily...')
     source_table_id = f"{config.LH_CHATWOOT_CATALOG}.{config.LH_CHATWOOT_SCHEMA}"
-    dest_table_id = f"{config.LH_CHATWOOT_CATALOG}.{config.LH_CHATWOOT_SCHEMA}.fct_active_users_daily"
+    dest_table_id = f"{config.WH_CHATWOOT_CATALOG}.{config.WH_CHATWOOT_SCHEMA}.fct_active_users_daily"
     return trino.execute(f"""
     INSERT INTO {dest_table_id}
     WITH all_account_user AS (SELECT a.account_id,
