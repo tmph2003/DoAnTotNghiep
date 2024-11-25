@@ -13,13 +13,8 @@ from plugins.warehouse.common.data_helper import DEFAULT_DATETIME_FORMAT
 from plugins.warehouse.common.db_helper import DatabaseConnection
 from plugins.warehouse.common.trino_helper import TrinoHelper
 from plugins.warehouse.etl.bronze.extractor import SourceDataset, TrinoExtractor
-from plugins.utils.notifier import TelegramNotifier
 
 local_tz = pendulum.timezone(config.DWH_TIMEZONE)
-notifier = TelegramNotifier(
-    chat_id=config.TG_CHATWOOT_CHAT_ID,
-    bot_token=config.TG_CHATWOOT_BOT_TOKEN
-)
 
 CHATWOOT_SOURCES = Variable.get('CHATWOOT_SOURCES', default_var=[], deserialize_json=True)
 logger = logging.getLogger('airflow.task')
@@ -32,7 +27,7 @@ trino_cli = TrinoHelper(logger=logger, client=trino_db)
 
 
 def _unsure_ddl():
-    trino_cli.execute('CREATE SCHEMA IF NOT EXISTS iceberg.hebela_chat')
+    trino_cli.execute('CREATE SCHEMA IF NOT EXISTS iceberg.chatwoot')
 
 
 def _extract_data(ts, **kwargs):
@@ -72,25 +67,24 @@ def _extract_data(ts, **kwargs):
 
 
 default_args = {
-    'owner': 'lam.nguyen3',
+    'owner': 'tmph2003',
     'depends_on_past': False,
-    'trigger_rule': 'all_done',  # https://marclamberti.com/blog/airflow-trigger-rules-all-you-need-to-know/
+    'trigger_rule': 'all_success',  # https://marclamberti.com/blog/airflow-trigger-rules-all-you-need-to-know/
     'email': ['tmph2003@gmail.com'],
     'email_on_failure': False,
     'email_on_retry': False,
-    'on_failure_callback': notifier.notify,
-    'retries': 0 if config.ENV == "prod" else 0,
+    'retries': 0,
     'retry_delay': timedelta(minutes=2)
 }
 with DAG(
-        dag_id='dags-HC-to-Lakehouse',
+        dag_id='dags-to-Lakehouse',
         default_args=default_args,
         description="Extract data from Chatwoot to Lakehouse's bronze",
         start_date=datetime(2024, 1, 1, 0, tzinfo=local_tz),
         max_active_runs=1,
-        schedule="2/20 * * * *" if config.ENV == "prod" else None,
+        schedule="2/20 * * * *" ,
         catchup=False,
-        tags=["hebela_chat", "bronze"]
+        tags=["chatwoot", "bronze"]
 ) as dag:
     start = EmptyOperator(task_id="start_ingestion")
     end = EmptyOperator(task_id="end_ingestion")
@@ -101,7 +95,7 @@ with DAG(
         provide_context=True
     )
 
-    with TaskGroup('Hebela_Chat', tooltip=f"Ingest all tables for reporting") as ingest_group:
+    with TaskGroup('Chatwoot', tooltip=f"Ingest all tables for reporting") as ingest_group:
         extract = PythonOperator(
             task_id=f"extract",
             python_callable=_extract_data,
