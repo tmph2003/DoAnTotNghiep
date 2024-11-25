@@ -19,7 +19,6 @@ dbt-env/
 logs/
 .dbt/
 **/jars/**
-**/catalog/*.properties
 data/
 dags/dbt/**/target/
 dags/**/target/
