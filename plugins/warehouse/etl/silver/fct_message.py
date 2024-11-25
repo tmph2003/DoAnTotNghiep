@@ -29,11 +29,11 @@ def build_fct_message(logger, trino: TrinoHelper):
             e.code as "ws_error_code",
             e.error_type,
             e.description,
-            d.has_media,
+            CASE WHEN d.has_media = true THEN 1 ELSE 0 END AS has_media,
             c.id AS "ws_template_id",
             a.message_type,
             a.status,
-            a.private AS "is_private",
+            CASE WHEN a.private = true THEN 1 ELSE 0 END AS "is_private",
             a.created_at,
             a.updated_at,
             a.partition_value
@@ -57,11 +57,11 @@ def build_fct_message(logger, trino: TrinoHelper):
             e.code as "ws_error_code",
             e.error_type,
             e.description,
-            d.has_media,
+            CASE WHEN d.has_media = true THEN 1 ELSE 0 END AS has_media,
             c.id AS "ws_template_id",
             a.message_type,
             a.status,
-            a.private AS "is_private",
+            CASE WHEN a.private = true THEN 1 ELSE 0 END AS "is_private",
             a.created_at,
             a.updated_at,
             a.partition_value
@@ -70,7 +70,6 @@ def build_fct_message(logger, trino: TrinoHelper):
             JOIN {source_table_id}.conversations b ON a.conversation_id = b.id
             LEFT JOIN {source_table_id}.dim_ws_template c ON 
                 (
-                    a.inbox_id = c.inbox_id AND
                     json_extract_scalar(a.additional_attributes, '$.template_params.name') = c.name AND
                     json_extract_scalar(a.additional_attributes, '$.template_params.category') = c.category AND
                     json_extract_scalar(a.additional_attributes, '$.template_params.language') = c.language
@@ -80,7 +79,7 @@ def build_fct_message(logger, trino: TrinoHelper):
                 CAST(regexp_extract(json_extract_scalar(json_extract_scalar(json_parse(content_attributes), '$'), '$.external_error'), '(\d+):', 1) AS INTEGER) = e.code
         WHERE json_extract_scalar(a.additional_attributes, '$.template_params.id') IS NULL
     ) AS s
-    ON (t.id = s.id)
+    ON (t.id = s.id AND t.ws_template_id = s.ws_template_id)
     WHEN MATCHED AND t.partition_value = s.partition_value AND t.updated_at <> s.updated_at
         THEN UPDATE SET
             campaign_id = s.campaign_id,
@@ -101,7 +100,8 @@ def handle_missing_templates(logger, trino: TrinoHelper):
     return trino.execute(f"""
     INSERT INTO {dest_table_id}
     WITH ws_template AS (
-        SELECT 
+        SELECT
+            m.account_id,
             m.inbox_id,
             json_extract_scalar(m.additional_attributes, '$.template_params.id') AS id,
             json_extract_scalar(m.additional_attributes, '$.template_params.name') AS name,
@@ -153,7 +153,6 @@ def handle_missing_templates(logger, trino: TrinoHelper):
     )
     SELECT 
         COALESCE(wt.id, CAST(uuid() AS VARCHAR)) AS id,
-        wt.inbox_id,
         wt.name,
         wt.status,
         wt.category,
@@ -163,7 +162,6 @@ def handle_missing_templates(logger, trino: TrinoHelper):
         ws_template_latest_no_id AS wt
     LEFT JOIN {dest_table_id} AS dwt
         ON (
-            wt.inbox_id = dwt.inbox_id AND
             wt.name = dwt.name AND
             wt.category = dwt.category AND
             wt.language = dwt.language
@@ -174,7 +172,6 @@ def handle_missing_templates(logger, trino: TrinoHelper):
     UNION
     SELECT 
         COALESCE(wt.id, CAST(uuid() AS VARCHAR)) AS id,
-        wt.inbox_id,
         wt.name,
         wt.status,
         wt.category,

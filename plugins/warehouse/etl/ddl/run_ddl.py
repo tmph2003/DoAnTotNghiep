@@ -15,20 +15,14 @@ def run(trino: TrinoHelper):
     trino.execute(DIM_WS_ERROR_CODE)
     trino.execute(DIM_DATE)
     trino.execute(DIM_WS_TEMPLATE_PRICE)
-
     # Run DDL for fact tables
     trino.execute(FCT_MESSAGE)
     trino.execute(FCT_CONVERSATION)
-    trino.execute(FCT_ACTIVE_USERS_DAILY)
-    trino.execute(FCT_ACTIVE_USERS_DAILY_DWH)
-    trino.execute(FCT_WS_TEMPLATE_STATUS_DAILY)
-    trino.execute(FCT_WS_TEMPLATE_STATUS_DAILY_DWH)
-    trino.execute(FCT_CAMPAIGN_TRANSACTION)
     trino.execute(FCT_CAMPAIGN_AGG)
     trino.execute(FCT_ACCOUNT_AGG)
-
+    trino.execute(FCT_CAMPAIGN_TRANSACTION)
+    #Clickhouse
+    trino.execute(FCT_ACTIVE_USERS_DAILY_DWH)
+    trino.execute(FCT_ACTIVE_USERS_CUMULATED_DWH)
     # Run DDL for cube tables
-    trino.execute(CUBE_ACCOUNT)
     trino.execute(CUBE_ACCOUNT_BI)
-    trino.execute(CUBE_CAMPAIGN_TRANSACTION)
-    trino.execute(CUBE_CAMPAIGN_TRANSACTION_BI)

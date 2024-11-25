@@ -11,14 +11,9 @@ from plugins.config import config
 from plugins.warehouse.common.db_helper import DatabaseConnection
 from plugins.warehouse.common.trino_helper import TrinoHelper
 from plugins.warehouse.etl.ddl.run_ddl import run
-from plugins.warehouse.etl.chatwoot import HebelaChatETL
-from plugins.utils.notifier import TelegramNotifier
+from plugins.warehouse.etl.chatwoot import ETL
 
 local_tz = pendulum.timezone(config.DWH_TIMEZONE)
-notifier = TelegramNotifier(
-    chat_id=config.TG_CHATWOOT_CHAT_ID,
-    bot_token=config.TG_CHATWOOT_BOT_TOKEN
-)
 
 logger = logging.getLogger('airflow.task')
 trino_db = DatabaseConnection(
@@ -34,28 +29,27 @@ def _unsure_ddl():
 
 
 def _transform_data():
-    hc_etl = HebelaChatETL(logger=logger, trino=trino_cli)
+    hc_etl = ETL(logger=logger, trino=trino_cli)
     hc_etl.transform()
 
 
 default_args = {
-    'owner': 'lam.nguyen3',
+    'owner': 'tmph2003',
     'depends_on_past': False,
-    'trigger_rule': 'all_done',  # https://marclamberti.com/blog/airflow-trigger-rules-all-you-need-to-know/
+    'trigger_rule': 'all_success',  # https://marclamberti.com/blog/airflow-trigger-rules-all-you-need-to-know/
     'email': ['tmph2003@gmail.com'],
     'email_on_failure': False,
     'email_on_retry': False,
-    'on_failure_callback': notifier.notify,
-    'retries': 1 if config.ENV == "prod" else 0,
+    'retries': 1,
     'retry_delay': timedelta(minutes=2)
 }
 with DAG(
-        dag_id='dags-HC-ETL',
+        dag_id='dags-ETL',
         default_args=default_args,
         description="Run ETL for Chatwoot",
         start_date=datetime(2024, 1, 1, 0, tzinfo=local_tz),
         max_active_runs=1,
-        schedule="10/20 * * * *" if config.ENV == "prod" else None,
+        schedule="10/20 * * * *" ,
         catchup=False,
         tags=["chatwoot", "silver"],
 ) as dag:

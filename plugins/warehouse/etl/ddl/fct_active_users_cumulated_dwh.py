@@ -1,5 +1,5 @@
 FCT_ACTIVE_USERS_CUMULATED_DWH = """
-    CREATE TABLE IF NOT EXISTS clickhouse.iceberg.chatwoot..fct_active_users_cumulated
+    CREATE TABLE IF NOT EXISTS clickhouse.chatwoot.fct_active_users_cumulated
     (
         user_id                 INTEGER NOT NULL,
         account_id              INTEGER NOT NULL,

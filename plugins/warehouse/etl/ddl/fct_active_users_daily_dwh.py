@@ -1,5 +1,5 @@
 FCT_ACTIVE_USERS_DAILY_DWH = """
-    CREATE TABLE IF NOT EXISTS clickhouse.iceberg.chatwoot..fct_active_users_daily (
+    CREATE TABLE IF NOT EXISTS clickhouse.chatwoot.fct_active_users_daily (
         user_id                 INTEGER NOT NULL,
         account_id              INTEGER NOT NULL,
         date_id                 INTEGER NOT NULL,
