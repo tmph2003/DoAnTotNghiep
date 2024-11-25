@@ -1,8 +1,8 @@
 FCT_CAMPAIGN_TRANSACTION = """
     CREATE TABLE IF NOT EXISTS iceberg.chatwoot.fct_campaign_transaction (
         campaign_id INTEGER,
-        account_id INTEGER,
         inbox_id INTEGER,
+        account_id INTEGER,
         contact_id INTEGER,
         message_id INTEGER,
         message_status INTEGER,
