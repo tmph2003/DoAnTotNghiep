@@ -1,0 +1,14 @@
+chatwoot:
+  target: lakehouse
+  outputs:
+    lakehouse:
+      type: trino
+      method: none
+      user: trino
+      password:
+      catalog: iceberg
+      schema: hebela_chat
+      host: localhost
+      port: 8080
+      http_scheme: http
+      threads: 2

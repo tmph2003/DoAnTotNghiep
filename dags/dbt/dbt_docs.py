@@ -9,16 +9,11 @@ from cosmos import ProfileConfig
 from cosmos.operators import DbtDocsS3Operator
 
 from plugins.config import config
-from plugins.utils.notifier import TelegramNotifier
 
 DEFAULT_DBT_ROOT_PATH = Path(__file__).parent
 DBT_ROOT_PATH = Path(os.getenv("DBT_ROOT_PATH", DEFAULT_DBT_ROOT_PATH))
 DBT_EXECUTABLE_PATH = f"/home/airflow/.local/bin/dbt"
 local_tz = pendulum.timezone(config.DWH_TIMEZONE)
-notifier = TelegramNotifier(
-    chat_id=config.TG_CHATWOOT_CHAT_ID,
-    bot_token=config.TG_CHATWOOT_BOT_TOKEN
-)
 
 profile_name = "chatwoot"
 project_dir = f"{DBT_ROOT_PATH}/{profile_name}"
@@ -40,7 +35,6 @@ with DAG(
         dag_id="gen_dbt_docs",
         default_args=default_args,
         catchup=False,
-        on_failure_callback=notifier.notify
 ) as dag:
     start_gen = EmptyOperator(task_id="start_gen_docs")
 

@@ -32,4 +32,4 @@ vars:
 # files using the `{{ config(...) }}` macro.
 models:
   chatwoot:
-    
+    +materialized: table
