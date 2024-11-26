@@ -27,7 +27,7 @@ class ETL:
         build_fct_active_users_daily(logger=self.logger, trino=self.trino)
         # clickhouse
         build_fct_active_users_daily_dwh(logger=self.logger, trino=self.trino)
-        build_fct_active_users_cumulated_dwh(logger=self.logger, trino=self)
+        build_fct_active_users_cumulated_dwh(logger=self.logger, trino=self.trino)
 
     def once_time(self):
         build_dim_ws_template_price(logger=self.logger, trino=self.trino)

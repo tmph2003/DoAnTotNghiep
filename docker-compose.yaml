@@ -1,3 +1,15 @@
+x-superset-depends-on: &superset-depends-on
+  - postgres
+  - redis
+x-superset-volumes: &superset-volumes
+  - ./containers/superset:/app/docker
+  - superset_home:/app/superset_home
+
+x-common-build: &common-build
+  image: tmph2003/superset:latest
+  # cache_from:
+    # - apache/superset-cache:3.10-slim-bookworm
+
 x-airflow-common: &airflow-common
   build:
     context: .
@@ -24,9 +36,6 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT: '60'
     AIRFLOW__SCHEDULER__SCHEDULER_HEALTH_CHECK_THRESHOLD: '240'
     AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: '0'
-    # AIRFLOW__LOGGING__REMOTE_LOGGING: 'true'
-    # AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID: 'minio'
-    # AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER: 's3://airflow-logs'
     TZ: 'Asia/Ho_Chi_Minh'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/app/dags
@@ -299,28 +308,100 @@ services:
       - NODE_ENV=production
       - RAILS_ENV=production
       - INSTALLATION_ENV=docker
-    entrypoint: docker/entrypoints/rails.sh
     command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
     networks:
       - data-network
 
-  sidekiq:
-    <<: *base
-    depends_on:
-      - postgres
-    environment:
-      - NODE_ENV=production
-      - RAILS_ENV=production
-      - INSTALLATION_ENV=docker
-    command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
+  # sidekiq:
+  #   <<: *base
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     - NODE_ENV=production
+  #     - RAILS_ENV=production
+  #     - INSTALLATION_ENV=docker
+  #   command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
+  #   networks:
+  #     - data-network
+
+  ####################################################################################################
+  # Superset:
+  ####################################################################################################
+
+  superset:
+    image: tmph2003/superset:latest
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    container_name: superset_app
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    user: "root"
+    restart: unless-stopped
+    ports:
+      - 8089:8088
+    depends_on: *superset-depends-on
+    volumes: *superset-volumes
+    profiles: [superset]
     networks:
       - data-network
 
+  superset-init:
+    image: tmph2003/superset:latest
+    container_name: superset_init
+    command: ["/app/docker/docker-init.sh"]
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck:
+      disable: true
+    profiles: [superset]
+    networks:
+      - data-network
+
+  superset-worker:
+    image: tmph2003/superset:latest
+    container_name: superset_worker
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
+        ]
+    profiles: [superset]
+    networks:
+      - data-network
+
+  superset-worker-beat:
+    image: tmph2003/superset:latest
+    container_name: superset_worker_beat
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck:
+      disable: true
+    profiles: [superset]
+    networks:
+      - data-network
+      
 volumes:
   pgdata:
   rddata:
   mdata:
-
 networks:
   data-network:
-
