@@ -7,8 +7,6 @@ x-superset-volumes: &superset-volumes
 
 x-common-build: &common-build
   image: tmph2003/superset:latest
-  # cache_from:
-    # - apache/superset-cache:3.10-slim-bookworm
 
 x-airflow-common: &airflow-common
   build:
@@ -48,7 +46,6 @@ x-airflow-common: &airflow-common
       condition: service_healthy
     postgres:
       condition: service_healthy
-  #  profiles: [airflow]
   networks:
     - data-network
 
@@ -232,19 +229,6 @@ services:
       S3_SECRET_KEY: minio123
       S3_PATH_STYLE_ACCESS: "true"
       REGION: "us-east-1"
-      GOOGLE_CLOUD_KEY_FILE_PATH: ""
-      AZURE_ADL_CLIENT_ID: ""
-      AZURE_ADL_CREDENTIAL: ""
-      AZURE_ADL_REFRESH_URL: ""
-      AZURE_ABFS_STORAGE_ACCOUNT: ""
-      AZURE_ABFS_ACCESS_KEY: ""
-      AZURE_WASB_STORAGE_ACCOUNT: ""
-      AZURE_ABFS_OAUTH: ""
-      AZURE_ABFS_OAUTH_TOKEN_PROVIDER: ""
-      AZURE_ABFS_OAUTH_CLIENT_ID: ""
-      AZURE_ABFS_OAUTH_SECRET: ""
-      AZURE_ABFS_OAUTH_ENDPOINT: ""
-      AZURE_WASB_ACCESS_KEY: ""
       HIVE_METASTORE_USERS_IN_ADMIN_ROLE: "admin"
     depends_on:
       postgres:
@@ -398,7 +382,24 @@ services:
     profiles: [superset]
     networks:
       - data-network
-      
+  
+  ####################################################################################################
+  # Clickhouse:
+  ####################################################################################################
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest-alpine
+    container_name: clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    ports:
+    - 18123:8123
+    - 9000:9000
+    networks:
+      - data-network
+    volumes:
+      - ./containers/clickhouse/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
 volumes:
   pgdata:
   rddata:

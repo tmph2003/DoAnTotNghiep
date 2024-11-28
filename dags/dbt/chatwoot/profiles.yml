@@ -7,7 +7,7 @@ chatwoot:
       user: trino
       password:
       catalog: iceberg
-      schema: hebela_chat
+      schema: chatwoot
       host: localhost
       port: 8080
       http_scheme: http
