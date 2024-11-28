@@ -9,8 +9,6 @@ Project to run pipeline by following this flow:
 - [Trading Data Warehouse Project](#trading-data-warehouse-project)
   - [Prerequisites](#prerequisites)
   - [Setup](#setup)
-    - [Create aliases for long commands with a Makefile](#create-aliases-for-long-commands-with-a-makefile)
-    - [Open Airflow webserver](#open-airflow-webserver)
   - [Infrastructure](#infrastructure)
     - [Notes:](#notes)
 
@@ -33,7 +31,6 @@ Folder structure:
 
 * [Docker](https://docs.docker.com/engine/install/)
 * [Docker Compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04)
-* [Makefile](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04)
 
 ## Setup
 
@@ -50,39 +47,7 @@ All the commands shown below are to be run via the terminal (use the Ubuntu term
 git clone https://gitlab.sapp.edu.vn/data-warehouse/sapp-lark.git
 cd sapp-lark
 # Grant permission For Airflow wrire and store logs
-chmod 777 -R ./airflow/logs
-# Start docker containers and create data for exercises and capstone project
-make init && make up
 ```
-
-### Create aliases for long commands with a Makefile
-
-**Makefile** lets you define shortcuts for commands that you might want to run, E.g., in our <u>[Makefile](./Makefile)</u>, we set the alias `up` to spin up Airflow
-
-We have some helpful **make** commands for working with our systems. Shown below are the make commands and their definitions
-
-1. `make init`: Initialize infrastructure
-2. `make up`: Spin up Airflow services.
-3. `make ui`: Open the Airflow Web-server.
-3. `make down`: Shutdown Airflow services.
-
-You can see the commands in <u>[this Makefile](./Makefile)</u>. If your terminal does not support **make** commands, please use the commands in <u>[the Makefile](./Makefile)</u> directly. All the commands in this book assume that you have the docker containers running.
-
-You can start and run the project as:
-
-```bash
-make init
-make up 
-```
-### Open Airflow webserver
-
-Use the following command to open Airflow webserver and login with username `airflow` and password `airflow`.
-
-```bash
-make ui
-```
-
-You also open this Web UI by address http://localhost:8088 (replace your-public-ip by the actual IP address of machine).
 
 ![Airflow](./assets/airflow.png)
 

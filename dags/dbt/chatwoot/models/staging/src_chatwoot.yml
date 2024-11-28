@@ -4,7 +4,7 @@ sources:
   - name: hc_gold
     description: Data from gold layer in Minio, brought in by an ETL process from DBT.
     database: iceberg
-    schema: hebela_chat
+    schema: chatwoot
     tables:
       - name: cube_campaign_transaction
         config:
@@ -16,7 +16,7 @@ sources:
   - name: hc_silver
     description: Data from silver layer in Minio, brought in by an ETL process.
     database: iceberg
-    schema: hebela_chat
+    schema: chatwoot
     tables:
       - name: dim_account
         config:

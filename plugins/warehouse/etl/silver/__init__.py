@@ -13,7 +13,5 @@ from plugins.warehouse.etl.silver.fct_account_agg import build_fct_account_agg
 from plugins.warehouse.etl.silver.fct_active_users_daily import build_fct_active_users_daily
 from plugins.warehouse.etl.silver.fct_active_users_daily_dwh import build_fct_active_users_daily_dwh
 from plugins.warehouse.etl.silver.fct_active_users_cumulated_dwh import build_fct_active_users_cumulated_dwh
-from plugins.warehouse.etl.silver.fct_campaign_agg import build_fct_campaign_agg
-from plugins.warehouse.etl.silver.fct_campaign_transaction import build_fct_campaign_transaction
 from plugins.warehouse.etl.silver.fct_conversation import build_fct_conversation
 from plugins.warehouse.etl.silver.fct_message import build_fct_message
