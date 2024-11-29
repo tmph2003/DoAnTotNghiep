@@ -395,11 +395,13 @@ services:
         hard: 262144
     ports:
     - 18123:8123
-    - 9000:9000
+    - 9002:9000
     networks:
       - data-network
     volumes:
       - ./containers/clickhouse/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+      - ./containers/clickhouse/config.xml:/etc/clickhouse-server/config.xml
+      - ./containers/clickhouse/users.xml:/etc/clickhouse-server/users.xml
 volumes:
   pgdata:
   rddata:
