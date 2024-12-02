@@ -23,4 +23,5 @@ data/
 dags/dbt/**/target/
 dags/**/target/
 data/dump_db_spark.py
+**/catalog/*.properties
 containers/**/catalog/
