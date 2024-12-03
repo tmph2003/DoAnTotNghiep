@@ -10,8 +10,8 @@ from plugins.warehouse.etl.silver.dim_ws_error_code import build_dim_ws_error_co
 from plugins.warehouse.etl.silver.dim_ws_template import build_dim_ws_template
 from plugins.warehouse.etl.silver.dim_ws_template_price import build_dim_ws_template_price
 from plugins.warehouse.etl.silver.fct_account_agg import build_fct_account_agg
-from plugins.warehouse.etl.silver.fct_active_users_daily import build_fct_active_users_daily
 from plugins.warehouse.etl.silver.fct_active_users_daily_dwh import build_fct_active_users_daily_dwh
 from plugins.warehouse.etl.silver.fct_active_users_cumulated_dwh import build_fct_active_users_cumulated_dwh
+from plugins.warehouse.etl.silver.fct_active_users_daily import build_fct_active_users_daily
 from plugins.warehouse.etl.silver.fct_conversation import build_fct_conversation
 from plugins.warehouse.etl.silver.fct_message import build_fct_message

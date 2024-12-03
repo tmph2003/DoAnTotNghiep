@@ -14,25 +14,23 @@ def build_fct_active_users_daily(logger, trino: TrinoHelper):
                                     b.id AS date_id
                             FROM {source_table_id}.dim_account_user a
                                     CROSS JOIN {source_table_id}.dim_date b
-                            WHERE CAST(DATE_FORMAT(a.created_at, '%Y%m%d') AS INTEGER) < b.id
-                                and b.id < CAST(DATE_FORMAT(CAST(CURRENT_TIMESTAMP + INTERVAL '7' HOUR AS DATE), '%Y%m%d') AS INTEGER)),
+                            WHERE CAST(DATE_FORMAT(a.created_at + INTERVAL '7' HOUR, '%Y%m%d') AS INTEGER) < b.id
+                                and b.id <= CAST(DATE_FORMAT(CURRENT_TIMESTAMP + INTERVAL '7' HOUR, '%Y%m%d') AS INTEGER)),
         contacts_sent AS (SELECT a.user_id,
                                 a.account_id,
-                                CAST(DATE_FORMAT(a.created_at, '%Y%m%d') AS INTEGER) AS date_id,
+                                CAST(DATE_FORMAT(a.created_at + INTERVAL '7' HOUR, '%Y%m%d') AS INTEGER) AS date_id,
                                 COUNT(DISTINCT a.contact_id)                         AS num_contacts_sent
                         FROM {source_table_id}.fct_message a
                         WHERE a.message_type = 1
-                        GROUP BY a.user_id, a.account_id,
-                                    CAST(DATE_FORMAT(a.created_at, '%Y%m%d') AS INTEGER)),
+                        GROUP BY 1,2,3),
         contacts_replied AS (SELECT b.assignee_id,
                                     a.account_id,
-                                    CAST(DATE_FORMAT(a.created_at, '%Y%m%d') AS INTEGER) AS date_id,
+                                    CAST(DATE_FORMAT(a.created_at + INTERVAL '7' HOUR, '%Y%m%d') AS INTEGER) AS date_id,
                                     count(DISTINCT a.contact_id)                         AS num_contacts_replied
                             FROM {source_table_id}.fct_message a
                                     JOIN {source_table_id}.conversations b ON a.conversation_id = b.id
                             WHERE a.message_type = 0
-                            GROUP BY b.assignee_id, a.account_id,
-                                    CAST(DATE_FORMAT(a.created_at, '%Y%m%d') AS INTEGER))
+                            GROUP BY 1,2,3)
     select aau.user_id,
         aau.account_id,
         aau.date_id,
@@ -48,12 +46,12 @@ def build_fct_active_users_daily(logger, trino: TrinoHelper):
         COALESCE(b.num_contacts_sent, 0)    AS num_contacts,
         COUNT(a.id)                         AS num_messages,
         COALESCE(c.num_contacts_replied, 0) AS num_contacts_replied,
-        current_timestamp + INTERVAL '7' hour
+        current_timestamp + INTERVAL '7' hour AS etl_inserted
     FROM all_account_user aau
             LEFT JOIN {source_table_id}.fct_message a
                     ON aau.user_id = a.user_id
                         AND aau.account_id = a.account_id
-                        AND aau.date_id = CAST(DATE_FORMAT(a.created_at, '%Y%m%d') AS INTEGER)
+                        AND aau.date_id = CAST(DATE_FORMAT(a.created_at + INTERVAL '7' HOUR, '%Y%m%d') AS INTEGER)
             LEFT JOIN contacts_sent b
                     ON aau.user_id = b.user_id
                         AND aau.account_id = b.account_id

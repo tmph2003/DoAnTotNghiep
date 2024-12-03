@@ -72,5 +72,5 @@ def build_fct_active_users_cumulated_dwh(logger, trino: TrinoHelper):
                 LEFT JOIN cte_weekly cw ON faud.user_id = cw.user_id AND faud.account_id = cw.account_id
                 LEFT JOIN cte_monthly cm ON faud.user_id = cm.user_id AND faud.account_id = cm.account_id
                 JOIN cte_active_array caa ON faud.user_id = caa.user_id AND faud.account_id = caa.account_id
-        WHERE faud.date_id = CAST(DATE_FORMAT(DATE_ADD('hour', 7, CAST('2024-11-28' AS TIMESTAMP)), '%Y%m%d') AS INTEGER)
+        WHERE faud.date_id = CAST(DATE_FORMAT(DATE_ADD('hour', 7, CAST('2024-12-2' AS TIMESTAMP)), '%Y%m%d') AS INTEGER)
     """)

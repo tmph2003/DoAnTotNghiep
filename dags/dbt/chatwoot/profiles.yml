@@ -6,7 +6,7 @@ chatwoot:
       method: none
       user: trino
       password:
-      catalog: iceberg
+      catalog: clickhouse
       schema: chatwoot
       host: localhost
       port: 8080
