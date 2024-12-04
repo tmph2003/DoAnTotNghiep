@@ -11,6 +11,7 @@ from plugins.warehouse.etl.ddl.dim_ws_template import DIM_WS_TEMPLATE
 from plugins.warehouse.etl.ddl.dim_ws_template_price import DIM_WS_TEMPLATE_PRICE
 from plugins.warehouse.etl.ddl.fct_account_agg import FCT_ACCOUNT_AGG
 from plugins.warehouse.etl.ddl.fct_active_users_cumulated_dwh import FCT_ACTIVE_USERS_CUMULATED_DWH
+from plugins.warehouse.etl.ddl.fct_active_users_daily import FCT_ACTIVE_USERS_DAILY
 from plugins.warehouse.etl.ddl.fct_active_users_daily_dwh import FCT_ACTIVE_USERS_DAILY_DWH
 from plugins.warehouse.etl.ddl.fct_campaign_agg import FCT_CAMPAIGN_AGG
 from plugins.warehouse.etl.ddl.fct_campaign_transaction import FCT_CAMPAIGN_TRANSACTION
