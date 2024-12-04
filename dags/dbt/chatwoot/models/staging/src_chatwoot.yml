@@ -3,14 +3,60 @@ version: 2
 sources:
   - name: hc_gold
     description: Data from gold layer in Minio, brought in by an ETL process from DBT.
-    database: iceberg
+    database: clickhouse
     schema: chatwoot
     tables:
-      - name: cube_campaign_transaction
+      - name: fct_active_users_daily
         config:
           tags: [ gold_layer ]
           columns:
-            - name: campaign_id
+            - name: user_id
+              tests: [ not_null ]
+            - name: account_id
+              tests: [ not_null ]
+            - name: date_id
+              tests: [ not_null ]
+            - name: month_id
+              tests: [ not_null ]
+            - name: is_active_today
+              tests: [ not_null ]
+            - name: num_contacts
+              tests: [ not_null ]
+            - name: num_messages
+              tests: [ not_null ]
+            - name: num_contacts_replied
+              tests: [ not_null ]
+            - name: etl_inserted
+              tests: [ not_null ]
+      - name: fct_active_users_cumulated
+        config:
+          tags: [ gold_layer ]
+          columns:
+            - name: user_id
+              tests: [ not_null ]
+            - name: account_id
+              tests: [ not_null ]
+            - name: is_daily_active
+              tests: [ not_null ]
+            - name: is_weekly_active
+              tests: [ not_null ]
+            - name: is_monthly_active
+              tests: [ not_null ]
+            - name: activity_array
+              tests: [ not_null ]
+            - name: contact_array
+              tests: [ not_null ]
+            - name: message_array
+              tests: [ not_null ]
+            - name: num_contacts_7d
+              tests: [ not_null ]
+            - name: num_messages_7d
+              tests: [ not_null ]
+            - name: num_contacts_30d
+              tests: [ not_null ]
+            - name: num_messages_30d
+              tests: [ not_null ]
+            - name: etl_inserted
               tests: [ not_null ]
 
   - name: hc_silver
@@ -24,8 +70,19 @@ sources:
           columns:
             - name: id
               tests: [ not_null ]
-            - 'name': 'name'
+            - name: name
               tests: [ not_null ]
+      
+      - name: dim_user
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: id
+              tests: [ not_null ]
+            - name: name
+            - name: display_name
+            - name: email
+            - name: type
 
       - name: dim_campaign
         config:
@@ -62,3 +119,62 @@ sources:
               tests: [ not_null ]
             - name: account_id
               tests: [ not_null ]
+      
+      - name: dim_ws_template_price
+        config:
+          tags: [ silver_layer ]
+          columns:
+            - name: marketing
+            - name: utility
+            - name: authentication
+            - name: authentication_international
+            - name: service
+            - name: phone_code
+      
+      - name: fct_message
+        config:
+          tag: [ silver_layer ]
+          columns:
+            - name: id
+            - name: user_id
+            - name: account_id
+            - name: inbox_id
+            - name: conversation_id
+            - name: contact_id
+            - name: campaign_id
+            - name: ws_error_code
+            - name: has_media
+            - name: ws_template_id
+            - name: message_type
+            - name: status
+            - name: is_private
+            - name: created_at
+            - name: updated_at
+            - name: partition_value
+      
+      - name: dim_ws_template
+        config:
+          tag: [ silver_layer ]
+          columns:
+            - name: id
+            - name: name
+            - name: status
+            - name: category
+            - name: language
+            - name: header_type
+
+      - name: dim_contact
+        config:
+          tag: [ silver_layer ]
+          columns:
+            - name: id
+            - name: account_id
+            - name: name
+            - name: middle_name
+            - name: last_name
+            - name: email
+            - name: phone_number
+            - name: location
+            - name: country_code
+            - name: created_at
+            - name: updated_at

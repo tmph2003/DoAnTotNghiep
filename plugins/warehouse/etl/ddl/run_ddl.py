@@ -21,6 +21,7 @@ def run(trino: TrinoHelper):
     trino.execute(FCT_CAMPAIGN_AGG)
     trino.execute(FCT_ACCOUNT_AGG)
     trino.execute(FCT_CAMPAIGN_TRANSACTION)
+    trino.execute(FCT_ACTIVE_USERS_DAILY)
     #Clickhouse
     trino.execute(FCT_ACTIVE_USERS_DAILY_DWH)
     trino.execute(FCT_ACTIVE_USERS_CUMULATED_DWH)
