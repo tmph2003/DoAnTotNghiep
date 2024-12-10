@@ -1,13 +1,8 @@
 {{
     config(
-        materialized='incremental',
-        incremental_strategy='merge',
+        materialized='table',
         partition_by='month(partition_date)',
-        unique_key=['account_id', 'partition_date'],
-        post_hook=[
-            "USE {{ var('catalog_bi') }}.{{ this.schema }}; CALL system.execute('ALTER TABLE {{ this.schema }}.{{ this.name }} DELETE WHERE partition_date = toDate(now(''Asia/Bangkok''))')",
-            "INSERT INTO {{ var('catalog_bi') }}.{{ this.schema }}.{{ this.name }} SELECT * FROM {{ this }} WHERE partition_date = date(current_timestamp AT TIME ZONE 'Asia/Bangkok')"
-        ]
+        unique_key=['account_id', 'partition_date']
     )
 }}
 
