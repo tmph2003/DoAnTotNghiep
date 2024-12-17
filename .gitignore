@@ -19,9 +19,11 @@ dbt-env/
 logs/
 .dbt/
 **/jars/**
-data/
 dags/dbt/**/target/
 dags/**/target/
 data/dump_db_spark.py
 **/catalog/*.properties
 containers/**/catalog/
+dbt_env/
+data/clickhouse-data/
+data/datalake/

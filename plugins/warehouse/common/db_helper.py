@@ -34,8 +34,7 @@ class DatabaseConnection:
                 host=config.TRINO_HOST,
                 port=config.TRINO_PORT,
                 user=config.TRINO_USER,
-                auth=BasicAuthentication(config.TRINO_USER, config.TRINO_PASS) if 'https' in config.TRINO_HOST else None,
-                http_scheme='https' if 'https' in config.TRINO_HOST else 'http'
+                http_scheme='http'
             )
         cur = _conn.cursor()
 

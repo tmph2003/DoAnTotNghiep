@@ -3,16 +3,13 @@ x-superset-depends-on: &superset-depends-on
   - redis
 x-superset-volumes: &superset-volumes
   - ./containers/superset:/app/docker
-  - superset_home:/app/superset_home
+  - ./data/superset_home:/app/superset_home
 
 x-common-build: &common-build
   image: tmph2003/superset:latest
 
 x-airflow-common: &airflow-common
-  build:
-    context: .
-    dockerfile: ./Dockerfile-dev
-  image: 20183574/airflow:dev
+  image: tmph2003/airflow-doan:latest
   env_file:
     - .env
   environment: &airflow-common-env
@@ -46,8 +43,6 @@ x-airflow-common: &airflow-common
       condition: service_healthy
     postgres:
       condition: service_healthy
-  networks:
-    - data-network
 
 services:
   postgres:
@@ -59,7 +54,7 @@ services:
     ports:
       - 15432:5432
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./data/postgres-data:/var/lib/postgresql/data
       - ./containers/postgres/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "airflow" ]
@@ -74,8 +69,10 @@ services:
     image: redis:latest
     expose:
       - 6379
+    ports:
+      - 6379:6379
     volumes:
-      - rddata:/data
+      - ./data/rddata:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -101,6 +98,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - data-network
 
   airflow-scheduler:
     <<: *airflow-common
@@ -115,6 +114,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - data-network
 
   airflow-worker:
     <<: *airflow-common
@@ -128,14 +129,37 @@ services:
       retries: 5
       start_period: 30s
     environment:
-      <<: *airflow-common-env
-      # Required to handle warm shutdown of the celery workers properly
-      # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@localhost:15432/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@localhost:15432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://:@localhost:6379/0
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+      AIRFLOW__CORE_TEST_CONNECTION: 'Enabled'
+      AIRFLOW__COSMOS__DBT_DOCS_DIR: "s3://dbt-docs"
+      AIRFLOW__COSMOS__DBT_DOCS_CONN_ID: "minio"
+      AIRFLOW__WEBSERVER__RELOAD_ON_PLUGIN_CHANGE: 'true'
+      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '60'
+      AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT: '60'
+      AIRFLOW__SCHEDULER__SCHEDULER_HEALTH_CHECK_THRESHOLD: '240'
+      AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: '0'
+      TZ: 'Asia/Ho_Chi_Minh'
       DUMB_INIT_SETSID: "0"
+    user: "${AIRFLOW_UID:-50000}:0"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/dags:/app/dags
+      - ${AIRFLOW_PROJ_DIR:-.}/logs:/app/logs
+      - ${AIRFLOW_PROJ_DIR:-.}/plugins:/app/plugins
+      - ${AIRFLOW_PROJ_DIR:-.}/include:/app/include
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    network_mode: host
 
   airflow-init:
     <<: *airflow-common
@@ -200,101 +224,103 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
+    networks:
+      - data-network
 
   ####################################################################################################
   # Trino
   ####################################################################################################
-  trino-master:
-    image: trinodb/trino:460
-    ports:
-      - 8080:8080
-    volumes: # - ./containers/trino/catalog:/etc/trino/catalog
-      - ./containers/trino/etc-coordinator:/etc/trino
-    networks:
-      - data-network
+  # trino-master:
+  #   image: trinodb/trino:460
+  #   ports:
+  #     - 8080:8080
+  #   volumes: # - ./containers/trino/catalog:/etc/trino/catalog
+  #     - ./containers/trino/etc-coordinator:/etc/trino
+  #   networks:
+  #     - data-network
 
-  hive-metastore:
-    hostname: hive-metastore
-    image: starburstdata/hive:3.1.3-e.10
-    ports:
-      - '9083:9083' # Metastore Thrift
-    environment:
-      HIVE_METASTORE_DRIVER: org.postgresql.Driver
-      HIVE_METASTORE_JDBC_URL: jdbc:postgresql://postgres:5432/metastore
-      HIVE_METASTORE_USER: hive
-      HIVE_METASTORE_PASSWORD: hive
-      HIVE_METASTORE_WAREHOUSE_DIR: s3://datalake/
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minio
-      S3_SECRET_KEY: minio123
-      S3_PATH_STYLE_ACCESS: "true"
-      REGION: "us-east-1"
-      HIVE_METASTORE_USERS_IN_ADMIN_ROLE: "admin"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - data-network
+  # hive-metastore:
+  #   hostname: hive-metastore
+  #   image: starburstdata/hive:3.1.3-e.10
+  #   ports:
+  #     - '9083:9083' # Metastore Thrift
+  #   environment:
+  #     HIVE_METASTORE_DRIVER: org.postgresql.Driver
+  #     HIVE_METASTORE_JDBC_URL: jdbc:postgresql://postgres:5432/metastore
+  #     HIVE_METASTORE_USER: hive
+  #     HIVE_METASTORE_PASSWORD: hive
+  #     HIVE_METASTORE_WAREHOUSE_DIR: s3://datalake/
+  #     S3_ENDPOINT: http://minio:9000
+  #     S3_ACCESS_KEY: minio
+  #     S3_SECRET_KEY: minio123
+  #     S3_PATH_STYLE_ACCESS: "true"
+  #     REGION: "us-east-1"
+  #     HIVE_METASTORE_USERS_IN_ADMIN_ROLE: "admin"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - data-network
 
-  minio:
-    hostname: minio
-    image: 'minio/minio'
-    ports:
-      - '9000:9000'
-      - '9001:9001'
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
-      MINIO_DOMAIN: minio
-    command: server /data --console-address ":9001"
-    volumes:
-      - ./data:/data
-    networks:
-      - data-network
+  # minio:
+  #   hostname: minio
+  #   image: 'minio/minio'
+  #   ports:
+  #     - '9000:9000'
+  #     - '9001:9001'
+  #   environment:
+  #     MINIO_ROOT_USER: minio
+  #     MINIO_ROOT_PASSWORD: minio123
+  #     MINIO_DOMAIN: minio
+  #   command: server /data --console-address ":9001"
+  #   volumes:
+  #     - ./data:/data
+  #   networks:
+  #     - data-network
 
-  minio-job:
-    image: 'minio/mc'
-    hostname: minio-job
-    entrypoint: |
-      /bin/bash -c "
-      sleep 5;
-      /usr/bin/mc config --quiet host add myminio http://minio:9000 minio minio123 || true;
-      /usr/bin/mc mb --quiet myminio/datalake || true;
-      /usr/bin/mc mb --quiet myminio/staging || true;
-      "
-    environment:
-      - AWS_ACCESS_KEY_ID=minio
-      - AWS_SECRET_ACCESS_KEY=minio123
-      - AWS_REGION=us-east-1
-      - AWS_DEFAULT_REGION=us-east-1
-      - S3_ENDPOINT=http://minio:9000
-      - S3_PATH_STYLE_ACCESS=true
-    depends_on:
-      - minio
-    networks:
-      - data-network
+  # minio-job:
+  #   image: 'minio/mc'
+  #   hostname: minio-job
+  #   entrypoint: |
+  #     /bin/bash -c "
+  #     sleep 5;
+  #     /usr/bin/mc config --quiet host add myminio http://minio:9000 minio minio123 || true;
+  #     /usr/bin/mc mb --quiet myminio/datalake || true;
+  #     /usr/bin/mc mb --quiet myminio/staging || true;
+  #     "
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID=minio
+  #     - AWS_SECRET_ACCESS_KEY=minio123
+  #     - AWS_REGION=us-east-1
+  #     - AWS_DEFAULT_REGION=us-east-1
+  #     - S3_ENDPOINT=http://minio:9000
+  #     - S3_PATH_STYLE_ACCESS=true
+  #   depends_on:
+  #     - minio
+  #   networks:
+  #     - data-network
 
   ####################################################################################################
   # Chatwoot:
   ####################################################################################################
-  base: &base
-    image: chatwoot/chatwoot:latest
-    env_file: .env ## Change this file for customized env variables
-    volumes:
-      - /data/storage:/app/storage
-  rails:
-    <<: *base
-    depends_on:
-      - postgres
-    ports:
-      - '127.0.0.1:3000:3000'
-    environment:
-      - NODE_ENV=production
-      - RAILS_ENV=production
-      - INSTALLATION_ENV=docker
-    command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
-    networks:
-      - data-network
+  # base: &base
+  #   image: chatwoot/chatwoot:latest
+  #   env_file: .env ## Change this file for customized env variables
+  #   volumes:
+  #     - /data/storage:/app/storage
+  # rails:
+  #   <<: *base
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - '127.0.0.1:3000:3000'
+  #   environment:
+  #     - NODE_ENV=production
+  #     - RAILS_ENV=production
+  #     - INSTALLATION_ENV=docker
+  #   command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
+  #   networks:
+  #     - data-network
 
   # sidekiq:
   #   <<: *base
@@ -325,7 +351,6 @@ services:
       - 8089:8088
     depends_on: *superset-depends-on
     volumes: *superset-volumes
-    profiles: [superset]
     networks:
       - data-network
 
@@ -341,7 +366,6 @@ services:
     volumes: *superset-volumes
     healthcheck:
       disable: true
-    profiles: [superset]
     networks:
       - data-network
 
@@ -362,7 +386,6 @@ services:
           "CMD-SHELL",
           "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
         ]
-    profiles: [superset]
     networks:
       - data-network
 
@@ -379,7 +402,6 @@ services:
     volumes: *superset-volumes
     healthcheck:
       disable: true
-    profiles: [superset]
     networks:
       - data-network
   
@@ -402,6 +424,7 @@ services:
       - ./containers/clickhouse/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
       - ./containers/clickhouse/config.xml:/etc/clickhouse-server/config.xml
       - ./containers/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+      - ./data/clickhouse-data:/var/lib/clickhouse
 volumes:
   pgdata:
   rddata:

@@ -49,7 +49,7 @@ with DAG(
         description="Run ETL for Chatwoot",
         start_date=datetime(2024, 1, 1, 0, tzinfo=local_tz),
         max_active_runs=1,
-        schedule="10/20 * * * *" ,
+        schedule="/20 * * * *" ,
         catchup=False,
         tags=["chatwoot", "silver"],
 ) as dag:

@@ -8,7 +8,7 @@ chatwoot:
       password:
       catalog: clickhouse
       schema: chatwoot
-      host: trino-master
+      host: 192.168.1.1
       port: 8080
       http_scheme: http
       threads: 2
