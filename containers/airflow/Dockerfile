@@ -12,9 +12,9 @@ USER airflow
 RUN --mount=type=bind,target=./requirements.txt,src=./requirements.txt \
     pip install -r requirements.txt
 
-COPY --chown=50000 ../dags /app/dags
-COPY --chown=50000 ../include /app/include
-COPY --chown=50000 ../plugins /app/plugins
+COPY --chown=50000 /dags /app/dags
+COPY --chown=50000 /include /app/include
+COPY --chown=50000 /plugins /app/plugins
 
 WORKDIR /app
 

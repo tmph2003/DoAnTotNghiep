@@ -82,7 +82,7 @@ with DAG(
         description="Extract data from Chatwoot to Lakehouse's bronze",
         start_date=datetime(2024, 1, 1, 0, tzinfo=local_tz),
         max_active_runs=1,
-        schedule="2/20 * * * *" ,
+        schedule="*/20 * * * *" ,
         catchup=False,
         tags=["chatwoot", "bronze"]
 ) as dag:
