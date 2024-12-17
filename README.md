@@ -21,7 +21,6 @@ Folder structure:
 ├── include                     # Các folder/file để import vào trong DAG
 ├── plugins                     # Python custom module
 ├── logs                        # For Airflow save logs
-├── .env_sample                 # Sample for file .env
 ├── requirements.txt            # Contains Python libraby
 ├── README.md                   # Repo document
 └── assets                      # Assets for README.md
