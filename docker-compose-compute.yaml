@@ -1,12 +1,4 @@
-x-superset-depends-on: &superset-depends-on
-  - postgres
-  - redis
-x-superset-volumes: &superset-volumes
-  - ./containers/superset:/app/docker
-  - ./data/superset_home:/app/superset_home
-
-x-common-build: &common-build
-  image: tmph2003/superset:latest
+name: compute
 
 x-airflow-common: &airflow-common
   image: tmph2003/airflow-doan:latest
@@ -164,7 +156,6 @@ services:
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
-    # yamllint disable rule:line-length
     command:
       - -c
       - |
@@ -299,111 +290,6 @@ services:
   #     - minio
   #   networks:
   #     - data-network
-
-  ####################################################################################################
-  # Chatwoot:
-  ####################################################################################################
-  # base: &base
-  #   image: chatwoot/chatwoot:latest
-  #   env_file: .env ## Change this file for customized env variables
-  #   volumes:
-  #     - /data/storage:/app/storage
-  # rails:
-  #   <<: *base
-  #   depends_on:
-  #     - postgres
-  #   ports:
-  #     - '127.0.0.1:3000:3000'
-  #   environment:
-  #     - NODE_ENV=production
-  #     - RAILS_ENV=production
-  #     - INSTALLATION_ENV=docker
-  #   command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
-  #   networks:
-  #     - data-network
-
-  # sidekiq:
-  #   <<: *base
-  #   depends_on:
-  #     - postgres
-  #   environment:
-  #     - NODE_ENV=production
-  #     - RAILS_ENV=production
-  #     - INSTALLATION_ENV=docker
-  #   command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
-  #   networks:
-  #     - data-network
-
-  ####################################################################################################
-  # Superset:
-  ####################################################################################################
-
-  superset:
-    image: tmph2003/superset:latest
-    env_file:
-      - path: containers/superset/.env # default
-        required: true
-    container_name: superset_app
-    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
-    user: "root"
-    restart: unless-stopped
-    ports:
-      - 8089:8088
-    depends_on: *superset-depends-on
-    volumes: *superset-volumes
-    networks:
-      - data-network
-
-  superset-init:
-    image: tmph2003/superset:latest
-    container_name: superset_init
-    command: ["/app/docker/docker-init.sh"]
-    env_file:
-      - path: containers/superset/.env # default
-        required: true
-    depends_on: *superset-depends-on
-    user: "root"
-    volumes: *superset-volumes
-    healthcheck:
-      disable: true
-    networks:
-      - data-network
-
-  superset-worker:
-    image: tmph2003/superset:latest
-    container_name: superset_worker
-    command: ["/app/docker/docker-bootstrap.sh", "worker"]
-    env_file:
-      - path: containers/superset/.env # default
-        required: true
-    restart: unless-stopped
-    depends_on: *superset-depends-on
-    user: "root"
-    volumes: *superset-volumes
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
-        ]
-    networks:
-      - data-network
-
-  superset-worker-beat:
-    image: tmph2003/superset:latest
-    container_name: superset_worker_beat
-    command: ["/app/docker/docker-bootstrap.sh", "beat"]
-    env_file:
-      - path: containers/superset/.env # default
-        required: true
-    restart: unless-stopped
-    depends_on: *superset-depends-on
-    user: "root"
-    volumes: *superset-volumes
-    healthcheck:
-      disable: true
-    networks:
-      - data-network
   
   ####################################################################################################
   # Clickhouse:
@@ -420,6 +306,7 @@ services:
     - 9002:9000
     networks:
       - data-network
+      - bi-service_data-network
     volumes:
       - ./containers/clickhouse/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
       - ./containers/clickhouse/config.xml:/etc/clickhouse-server/config.xml
@@ -431,3 +318,6 @@ volumes:
   mdata:
 networks:
   data-network:
+  bi-service_data-network:
+    external: true
+  
