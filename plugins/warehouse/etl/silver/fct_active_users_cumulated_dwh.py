@@ -67,10 +67,15 @@ def build_fct_active_users_cumulated_dwh(logger, trino: TrinoHelper):
             reduce(slice(message_array, 1, 7), 0, (s, x) -> s + x, s -> s) AS num_messages_7d,
             reduce(contact_array, 0, (s, x) -> s + x, s -> s)              AS num_contacts_30d,
             reduce(message_array, 0, (s, x) -> s + x, s -> s)              AS num_messages_30d,
-            CURRENT_TIMESTAMP + INTERVAL '7' hour                          AS etl_inserted
+            CURRENT_TIMESTAMP                                              AS etl_inserted
         FROM {source_table_id}.fct_active_users_daily faud
                 LEFT JOIN cte_weekly cw ON faud.user_id = cw.user_id AND faud.account_id = cw.account_id
                 LEFT JOIN cte_monthly cm ON faud.user_id = cm.user_id AND faud.account_id = cm.account_id
                 JOIN cte_active_array caa ON faud.user_id = caa.user_id AND faud.account_id = caa.account_id
-        WHERE faud.date_id = CAST(DATE_FORMAT(DATE_ADD('hour', 7, CAST('2024-12-2' AS TIMESTAMP)), '%Y%m%d') AS INTEGER)
+        WHERE faud.date_id = CAST(DATE_FORMAT(DATE_ADD('hour', 7, current_timestamp), '%Y%m%d') AS INTEGER)
+        AND faud.etl_inserted = (
+            SELECT MAX(etl_inserted)
+            FROM {source_table_id}.fct_active_users_daily faud1
+            WHERE faud1.user_id = faud.user_id AND faud1.account_id = faud.account_id
+        )
     """)
