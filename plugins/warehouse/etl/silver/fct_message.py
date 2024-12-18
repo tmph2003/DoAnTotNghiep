@@ -44,7 +44,7 @@ def build_fct_message(logger, trino: TrinoHelper):
             LEFT JOIN messages_has_media d ON a.id = d.message_id
             LEFT JOIN {source_table_id}.dim_ws_error_code e ON
                 CAST(regexp_extract(json_extract_scalar(json_extract_scalar(json_parse(content_attributes), '$'), '$.external_error'), '(\d+):', 1) AS INTEGER) = e.code
-            WHERE json_extract_scalar(a.additional_attributes, '$.template_params.id') IS NOT NULL
+            WHERE json_extract_scalar(a.additional_attributes, '$.template_params.id') IS NOT NULL AND a.updated_at >= current_timestamp - INTERVAL '30' day
         UNION
         SELECT
             a.id,
@@ -77,7 +77,7 @@ def build_fct_message(logger, trino: TrinoHelper):
             LEFT JOIN messages_has_media d ON a.id = d.message_id
             LEFT JOIN {source_table_id}.dim_ws_error_code e ON
                 CAST(regexp_extract(json_extract_scalar(json_extract_scalar(json_parse(content_attributes), '$'), '$.external_error'), '(\d+):', 1) AS INTEGER) = e.code
-        WHERE json_extract_scalar(a.additional_attributes, '$.template_params.id') IS NULL
+        WHERE json_extract_scalar(a.additional_attributes, '$.template_params.id') IS NULL AND a.updated_at >= current_timestamp - INTERVAL '30' day
     ) AS s
     ON (t.id = s.id AND t.ws_template_id = s.ws_template_id)
     WHEN MATCHED AND t.partition_value = s.partition_value AND t.updated_at <> s.updated_at

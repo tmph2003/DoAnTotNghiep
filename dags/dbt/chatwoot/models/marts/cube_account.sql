@@ -14,7 +14,7 @@ WITH import_dim_account AS (
 import_fct_account_agg AS (
   SELECT *
   FROM {{ source('hc_silver', 'fct_account_agg') }}
-  WHERE partition_date = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')
+  WHERE partition_date = DATE(CURRENT_TIMESTAMP)
 ),
 
 final_cte AS (

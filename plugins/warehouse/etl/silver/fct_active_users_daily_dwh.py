@@ -46,7 +46,7 @@ def build_fct_active_users_daily_dwh(logger, trino: TrinoHelper):
         COALESCE(b.num_contacts_sent, 0)    AS num_contacts,
         COUNT(a.id)                         AS num_messages,
         COALESCE(c.num_contacts_replied, 0) AS num_contacts_replied,
-        current_timestamp + INTERVAL '7' hour AS etl_inserted
+        current_timestamp                   AS etl_inserted
     FROM all_account_user aau
             LEFT JOIN {source_table_id}.fct_message a
                     ON aau.user_id = a.user_id
