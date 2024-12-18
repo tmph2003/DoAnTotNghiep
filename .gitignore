@@ -25,5 +25,5 @@ data/dump_db_spark.py
 **/catalog/*.properties
 containers/**/catalog/
 dbt_env/
-data/clickhouse-data/
-data/datalake/
+data/
+data/postgres-data/

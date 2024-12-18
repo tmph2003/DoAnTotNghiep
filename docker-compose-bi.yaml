@@ -1,0 +1,123 @@
+name: bi-service
+
+x-superset-depends-on: &superset-depends-on
+  - postgres
+  - redis
+x-superset-volumes: &superset-volumes
+  - ./containers/superset:/app/docker
+  - ./data/superset_home:/app/superset_home
+
+x-common-build: &common-build
+  image: tmph2003/superset:latest
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - 25432:5432
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
+      - ./containers/postgres/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    networks:
+      - data-network
+
+  ####################################################################################################
+  # Superset:
+  ####################################################################################################
+
+  superset:
+    image: tmph2003/superset:latest
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    container_name: superset_app
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    user: "root"
+    restart: unless-stopped
+    ports:
+      - 8089:8088
+    depends_on: *superset-depends-on
+    volumes: *superset-volumes
+    networks:
+      - data-network
+
+  superset-init:
+    image: tmph2003/superset:latest
+    container_name: superset_init
+    command: ["/app/docker/docker-init.sh"]
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck:
+      disable: true
+    networks:
+      - data-network
+
+  superset-worker:
+    image: tmph2003/superset:latest
+    container_name: superset_worker
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
+        ]
+    networks:
+      - data-network
+
+  superset-worker-beat:
+    image: tmph2003/superset:latest
+    container_name: superset_worker_beat
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    env_file:
+      - path: containers/superset/.env # default
+        required: true
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck:
+      disable: true
+    networks:
+      - data-network
+  redis:
+    image: redis:latest
+    expose:
+      - 6379
+    volumes:
+      - ./data/rddata:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    networks:
+      - data-network
+volumes:
+  pgdata:
+  rddata:
+  mdata:
+networks:
+  data-network:
